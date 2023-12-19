@@ -1,0 +1,11 @@
+seed: 42
+data:
+  data_dir: './data'
+  batch_size: 64
+training:
+  epochs: 10
+  learning_rate: 0.001
+  batch_size: 64
+testing:
+  batch_size: 64
+model_path: './model.pth'
