@@ -1,6 +1,7 @@
 seed: 42
 data:
   data_dir: './data'
+  dataset: CIFAR-10
   batch_size: 64
 training:
   epochs: 10
