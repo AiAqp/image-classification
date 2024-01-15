@@ -1,6 +1,6 @@
 import hydra
 from omegaconf import DictConfig, OmegaConf
-from utils import load_config
+from common_utils import load_config
 from experiment import ExperimentTracker
 
 @hydra.main(version_base=None, config_path="conf", config_name="config")
