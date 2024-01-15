@@ -1,4 +1,4 @@
-from dataset import get_data_loaders
+from dataset import load_dataset
 from model import BasicCNN
 from trainer import Trainer
 from tester import Tester
@@ -8,8 +8,8 @@ class ExperimentTracker:
     def __init__(self, config):
         self.config = config
         set_random_seeds(self.config['seed'])
-        self.data_loaders = get_data_loaders(self.config['data'])
-        self.model = BasicCNN()
+        self.data_loaders, n_classes = load_dataset(self.config['data'])
+        self.model = BasicCNN(n_classes)
         self.trainer = Trainer(self.model, self.data_loaders['train'], self.config['training'])
         self.tester = Tester(self.model, self.data_loaders['test'], self.config['testing'])
 

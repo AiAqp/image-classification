@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class BasicCNN(nn.Module):
-    def __init__(self):
+    def __init__(self, n_classes):
         super(BasicCNN, self).__init__()
         # Convolutional layers
         self.conv1 = nn.Conv2d(3, 6, 5)  
@@ -11,7 +11,7 @@ class BasicCNN(nn.Module):
         # Fully connected layers
         self.fc1 = nn.Linear(16 * 5 * 5, 120) 
         self.fc2 = nn.Linear(120, 84)
-        self.fc3 = nn.Linear(84, 10) # MNIST 10 classes
+        self.fc3 = nn.Linear(84, n_classes)
 
     def forward(self, x):
         x = F.max_pool2d(F.relu(self.conv1(x)), (2, 2)) 
