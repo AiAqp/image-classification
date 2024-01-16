@@ -1,12 +1,59 @@
-seed: 42
-data:
-  data_dir: './data'
-  dataset: CIFAR-10
-  batch_size: 64
-training:
-  epochs: 10
-  learning_rate: 0.001
-  batch_size: 64
-testing:
-  batch_size: 64
-model_path: './model.pth'
+# Disable redundant logs 
+hydra:  
+  output_subdir: null  
+  run:  
+    dir: .
+
+experiment:
+  log_dir: outputs/
+  random_seed: 420
+  verbose: True
+
+model: 
+  type: BasicCNN
+  save_dir: models/
+
+dataset:
+  root: data/
+  type: CIFAR10
+  shuffle: True
+  validation_split: 0.2
+  n_batches: 32
+
+transforms:
+  # applied to training and validation dataset
+  default:
+    - type: Resize
+      args:
+        size: 256
+    - type: CenterCrop
+      args: 
+        size: 224
+    - type: ToTensor
+    - type: Normalize
+      args:
+        mean: [0.485, 0.456, 0.406]
+        std: [0.229, 0.224, 0.225]
+
+  # applied to training set in addition to default
+  training:
+    - type: RandomHorizontalFlip
+      args:
+        p: 0.5
+
+optimizer: 
+  type: Adam
+  args: 
+    lr: 0.001
+    momentum: 0.9
+
+objective:
+  type: NLLLoss 
+
+metrics: [accuracy, f1_score]
+
+training: 
+  n_epochs: 20
+  # number of epochs otherwise
+  early_stopping: False
+  

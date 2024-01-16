@@ -5,3 +5,6 @@
 /.*
 !.gitignore
 *.ipynb
+__pycache__
+
+/data

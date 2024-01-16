@@ -22,7 +22,7 @@ def save_model(model: Module, path: str) -> None:
 
 ModuleType = TypeVar('ModuleType')
 
-def get_object(object_name: str, package: ModuleType, allowed_names: Optional[List[str]] = None, **kwargs) -> Any:
+def get_object(package: ModuleType, object_name: str, allowed_names: Optional[List[str]] = None, **kwargs) -> Any:
     """
     Dynamically retrieves an object from a given package and initializes it with provided keyword arguments.
     """

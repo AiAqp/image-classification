@@ -1,47 +1,67 @@
+import common_utils
 import torchvision.transforms as transforms
 import torchvision.datasets as datasets
-from torch.utils.data import DataLoader
+from torch.utils.data import Dataset, Subset, DataLoader, random_split
+from typing import Callable, Optional, Tuple, Any
 
-# A dictionary registering the available datasets along with their number of classes.
-_dataset_register = {
-    'CIFAR-10': (datasets.CIFAR10, 10),
-    'CIFAR-100': (datasets.CIFAR100, 100)
-}
+class TransformableSubset(Dataset):
+    """Dataset wrapper that applies a specified transformation to a subset of a dataset."""
+    def __init__(self, subset: Subset, transform: Optional[Callable] = None):
+        self.subset = subset
+        self.transform = transform
 
-def load_dataset(dataset_config):
-    dataset_name = dataset_config['dataset']
-    if dataset_name not in _dataset_register:
-        raise NotImplementedError(f"Dataset '{dataset_name}' is not implemented.")
+    def __len__(self) -> int:
+        return len(self.subset)
 
-    loader, n_classes = _dataset_register[dataset_name]
+    def __getitem__(self, idx: int) -> Tuple[Any, int]:
+        image, label = self.subset[idx]
+        if self.transform:
+            image = self.transform(image)
+        return image, label
+    
+def compose_transforms(items):
+    transform_list = []
+    for item in items:
+        type = item.type
+        args = item.get('args',{})
+        transform_list.append(common_utils.get_object(transforms, type, **args))
+    
+    return transforms.Compose(transform_list)
 
-    train_loader, test_loader = _create_loaders(loader, dataset_config)
-    return train_loader, test_loader, n_classes
+def get_datasets(cfg):
+    default_transform = compose_transforms(cfg.transforms.default)
+    train_transform = compose_transforms(cfg.transforms.training+cfg.transforms.default)
 
-def _create_loaders(loader, dataset_config):
-    train_transform, test_transform = _get_transforms()
+    train_dataset = common_utils.get_object(
+        package = datasets, 
+        object_name = cfg.dataset.type, 
+        root = cfg.dataset.root,
+        train = True,
+        download = True
+    )
 
-    train_set = loader(dataset_config['root'], train=True, download=True, transform=train_transform)
-    test_set = loader(dataset_config['root'], train=False, download=True, transform=test_transform)
+    test_dataset = common_utils.get_object(
+            package = datasets, 
+            object_name = cfg.dataset.type, 
+            root = cfg.dataset.root,
+            train = False,
+            download = True,
+            transform = default_transform
+        )
+    
+    validation_size = int(cfg.dataset.validation_split * len(train_dataset))
+    train_size = len(train_dataset) - validation_size
 
-    train_loader = DataLoader(train_set, dataset_config['batch_size'], shuffle=True)
-    test_loader = DataLoader(test_set, dataset_config['batch_size'], shuffle=False)
+    train_subset, validation_subset = random_split(train_dataset, [train_size, validation_size])
 
-    return train_loader, test_loader
+    train_dataset = TransformableSubset(train_subset, transform=train_transform)
+    validation_dataset = TransformableSubset(validation_subset, transform=default_transform)
+    
+    return train_dataset, validation_dataset, test_dataset
 
-def _get_transforms(custom_transforms=None):
-    if custom_transforms:
-        return custom_transforms
+def get_loaders(train_dataset, validation_dataset, test_dataset, shuffle, n_batches):
+    train_loader = DataLoader(train_dataset, batch_size=n_batches, shuffle=shuffle)
+    validation_loader = DataLoader(validation_dataset, batch_size=n_batches, shuffle=False)
+    test_loader = DataLoader(test_dataset, batch_size=n_batches, shuffle=False)
 
-    train_transform = transforms.Compose([
-        transforms.RandomHorizontalFlip(),
-        transforms.ToTensor(),
-        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
-    ])
-
-    test_transform = transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
-    ])
-
-    return train_transform, test_transform
+    return train_loader, validation_loader, test_loader
