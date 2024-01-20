@@ -17,8 +17,9 @@ class BasicCNN(nn.Module):
         n_channels (int): The number of channels of input image.
         n_classes (int): The number of output classes.
     """
-    def __init__(self, n_channels: int, n_classes: int) -> None:
+    def __init__(self, input_shape: List[int], n_classes: int) -> None:
         super(BasicCNN, self).__init__()
+        n_channels = input_shape[0]
         self.conv1 = nn.Conv2d(n_channels, 6, 5)  
         self.conv2 = nn.Conv2d(6, 16, 5) 
         self.adaptive_pool = nn.AdaptiveAvgPool2d((1, 1))  

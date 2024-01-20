@@ -1,25 +1,55 @@
-from dataset import load_dataset
+import datasets
 import models
-from trainer import Trainer
-from tester import Tester
-from common_utils import set_random_seeds, save_model
+import common_utils
 
-class ExperimentTracker:
-    def __init__(self, config):
-        self.config = config
-        set_random_seeds(self.config['seed'])
-        self.data_loaders, n_classes = load_dataset(self.config['data'])
-        self.model = models.get_model('BasicCNN', n_classes=n_classes)
-        self.trainer = Trainer(self.model, self.data_loaders['train'], self.config['training'])
-        self.tester = Tester(self.model, self.data_loaders['test'], self.config['testing'])
+import torch
+import warnings
 
-    def save_metrics():
-        pass
+class ExperimentRunner:
+    def __init__(self, cfg):
+        self.run_metrics = {}
+        self.cfg = cfg
+        self.set_device()
 
-    def load_model():
-        pass
+        # initialize dataset pipeline
+        ds = datasets.get_datasets_from_config(cfg.datasets)
+        tr = datasets.get_transforms_from_config(cfg.transforms)
+        self.data = datasets.DataPipeline(*ds)
+        self.data.set_transforms(*tr)
+        self.data.set_loaders(**cfg.dataloaders)
+
+        # initialize model 
+        input_shape = self.data.train_dataset[0][0].shape
+        n_classes = len(self.data.train_dataset.classes)
+        self.model = common_utils.import_object(cfg.model.type)(input_shape, n_classes)
+
+        # initialize optimizer
+        self.optimizer = common_utils.import_object(cfg.optimizer.type)(self.model.parameters(), **cfg.optimizer.args)
+
+        # initialize loss 
+        self.criterion = common_utils.initialize_from_config(cfg.criterion)
+
+        common_utils.set_random_seeds(cfg.experiment.seed)
+
+    def set_device(self) -> None:
+        """
+        Sets the device for the experiment based on configuration and system availability.
+        Appends the device information to run_metrics and issues a warning if GPU is requested but not available.
+        """
+        if self.cfg.experiment.use_gpu and torch.cuda.is_available():
+            self.device = torch.device("cuda")
+        else:
+            if self.cfg.experiment.use_gpu:
+                warnings.warn("GPU requested but not available. Falling back to CPU.")
+            self.device = torch.device("cpu")
+
+        self.run_metrics["device"] = str(self.device)
 
     def run(self):
-        self.trainer.train()
-        test_metrics = self.tester.test()
-        save_model(self.model, self.config['model_path'])
+        pass
+
+def train_step(model, dataloader, objective, optimizer):
+    pass
+
+def eval_step(model, dataloader, objective, optimizer):
+    pass

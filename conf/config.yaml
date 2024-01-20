@@ -6,54 +6,49 @@ hydra:
 
 experiment:
   log_dir: outputs/
-  random_seed: 420
+  save_dir: weights/
+  seed: 420
   verbose: True
+  use_gpu: True
 
 model: 
-  type: BasicCNN
-  save_dir: models/
+  type: models.FullyConnected
 
-dataset:
+datasets:
   root: data/
-  type: CIFAR10
-  shuffle: True
+  type: torchvision.datasets.MNIST
   validation_split: 0.2
+
+dataloaders: 
+  shuffle: True
   n_batches: 32
 
 transforms:
   # applied to training and validation dataset
   default:
-    - type: Resize
+    - type: torchvision.transforms.ToTensor
+    - type: torchvision.transforms.Normalize
       args:
-        size: 256
-    - type: CenterCrop
-      args: 
-        size: 224
-    - type: ToTensor
-    - type: Normalize
-      args:
-        mean: [0.485, 0.456, 0.406]
-        std: [0.229, 0.224, 0.225]
+        mean: [0.5]
+        std: [0.5]
 
   # applied to training set in addition to default
-  training:
-    - type: RandomHorizontalFlip
+  augment:
+    - type: torchvision.transforms.RandomHorizontalFlip
       args:
         p: 0.5
 
 optimizer: 
-  type: Adam
+  type: torch.optim.Adam
   args: 
     lr: 0.001
-    momentum: 0.9
 
-objective:
-  type: NLLLoss 
+criterion:
+  type: torch.nn.CrossEntropyLoss 
 
 metrics: [accuracy, f1_score]
 
 training: 
   n_epochs: 20
   # number of epochs otherwise
-  early_stopping: False
-  
+  early_stopping: 2
