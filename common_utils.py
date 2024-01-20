@@ -3,7 +3,7 @@ import random
 import importlib
 import numpy as np
 from torch.nn import Module
-from typing import Any, List, Dict, Optional, TypeVar
+from typing import Any, List, Dict, Optional, Union
 
 def set_random_seeds(seed: int) -> None:
     """
@@ -40,3 +40,26 @@ def import_object(full_path: str, allowed_names: Optional[List[str]] = None) -> 
     
     except ImportError:
         raise ImportError(f"Module named '{module_path}' could not be imported.")
+    
+
+def initialize_from_config(config: Union[Dict[str, Any], List[Dict[str, Any]]]) -> Union[Any, List[Any]]:
+    """
+    Initializes objects based on the provided configuration or a list of configurations.
+    Each configuration is dict-like with 'type' and optionally 'args'.
+    """
+    def initialize_single_object(cfg: Dict[str, Any]) -> Any:
+        if 'type' not in cfg:
+            raise ValueError("Configuration dictionary must contain a 'type' key.")
+
+        object_type = cfg['type']
+        args = cfg.get('args', {})
+
+        object_class = import_object(object_type)
+        return object_class(**args) if args else object_class()
+
+    if hasattr(config, 'items'): 
+        return initialize_single_object(config)
+    elif hasattr(config, '__iter__') and not isinstance(config, str):
+        return [initialize_single_object(cfg) for cfg in config]
+    else:
+        raise TypeError("Config must be a dict-like or list-like object.")
