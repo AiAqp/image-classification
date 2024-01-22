@@ -42,10 +42,24 @@ def import_object(full_path: str, allowed_names: Optional[List[str]] = None) -> 
         raise ImportError(f"Module named '{module_path}' could not be imported.")
     
 
-def initialize_from_config(config: Union[Dict[str, Any], List[Dict[str, Any]]]) -> Union[Any, List[Any]]:
+def initialize_from_config(config: Union[Dict[str, Any], List[Dict[str, Any]]], callback: bool = False) -> Union[Any, List[Any]]:
     """
     Initializes objects based on the provided configuration or a list of configurations.
-    Each configuration is dict-like with 'type' and optionally 'args'.
+
+    Parameters:
+        config: Configuration for initializing objects. 
+            It can be a single dictionary or a list of dictionaries. Each dictionary must have a 'type' 
+            key and optionally an 'args' key.
+        callback: If set to True, the function returns a callable wrapper instead of 
+            an instance of the object. Defaults to False.
+
+    Returns:
+        An initialized object or a list of initialized objects based on the 
+        provided configuration. If 'callback' is True, returns a callable or a list of callables.
+
+    Raises:
+        ValueError: If any configuration dictionary does not contain the 'type' key.
+        TypeError: If the provided config is neither a dictionary nor a list.
     """
     def initialize_single_object(cfg: Dict[str, Any]) -> Any:
         if 'type' not in cfg:
@@ -55,7 +69,16 @@ def initialize_from_config(config: Union[Dict[str, Any], List[Dict[str, Any]]]) 
         args = cfg.get('args', {})
 
         object_class = import_object(object_type)
-        return object_class(**args) if args else object_class()
+
+        if callback:
+            def wrapper(*wrapper_args, **wrapper_kwargs):
+                return object_class(*wrapper_args, **wrapper_kwargs, **args)
+            
+            wrapper.__name__ = getattr(object_class, '__name__', 'unknown')
+
+            return wrapper
+        else:
+            return object_class(**args) if args else object_class()
 
     if hasattr(config, 'items'): 
         return initialize_single_object(config)
