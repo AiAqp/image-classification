@@ -1,0 +1,16 @@
+name: image-classification
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - python=3.9
+  - numpy
+  - scikit-learn
+  - pytorch
+  - torchvision
+  - mlflow
+  - tqdm
+  - pip
+  - pip:
+    - hydra-core
+    - omegaconf

@@ -1,11 +1,10 @@
 import datasets
 import metrics
 import common_utils
-
+import warnings
 import mlflow
 from tqdm import tqdm
 import torch
-import warnings
 from omegaconf import DictConfig
 
 class ExperimentRunner:
@@ -143,5 +142,5 @@ class ExperimentRunner:
                     tqdm.write("Early stopping triggered")
                     break
 
-            self.eval_step()
+            self.test_step()
             mlflow.log_metrics(self.losses.get_metrics('test'), step=epoch)
