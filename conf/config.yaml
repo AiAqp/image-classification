@@ -1,19 +1,21 @@
 # Disable redundant logs 
+defaults:  
+  - _self_  
+  - override hydra/hydra_logging: disabled  
+  - override hydra/job_logging: disabled  
+
 hydra:  
   output_subdir: null  
   run:  
     dir: .
 
+# Execution details
 experiment:
-  log_dir: outputs/
-  save_dir: weights/
   seed: 420
-  verbose: True
+  show_progress: True
   use_gpu: True
 
-model: 
-  type: models.FullyConnected
-
+# Experiment pipeline
 datasets:
   root: data/
   type: torchvision.datasets.MNIST
@@ -38,17 +40,31 @@ transforms:
       args:
         p: 0.5
 
+model: 
+  type: models.FullyConnected
+
+criterion:
+  type: torch.nn.CrossEntropyLoss 
+
 optimizer: 
   type: torch.optim.Adam
   args: 
     lr: 0.001
 
-criterion:
-  type: torch.nn.CrossEntropyLoss 
-
-metrics: [accuracy, f1_score]
-
 training: 
   n_epochs: 20
-  # number of epochs otherwise
-  early_stopping: 2
+  patience: 2
+
+metrics:
+  - type: sklearn.metrics.accuracy_score
+  - type: sklearn.metrics.precision_score
+    args: 
+      average: macro
+      zero_division: 0
+  - type: sklearn.metrics.recall_score
+    args: 
+      average: macro 
+      zero_division: 0
+  - type: sklearn.metrics.f1_score
+    args: 
+      average: macro   

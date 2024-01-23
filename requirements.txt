@@ -1,5 +1,7 @@
 torch
 torchvision
-tensorboard
-pyyaml
+mlflow
+tqdm
 hydra
+omegaconf
+scikit_learn

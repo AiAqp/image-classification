@@ -118,7 +118,7 @@ def get_datasets_from_config(cfg):
     dataset = common_utils.import_object(cfg.type)
 
     train_dataset = dataset(root=cfg.root, train=True, download=True)
-    train_dataset, val_dataset = split_dataset(train_dataset, cfg.validation_split)
+    val_dataset, train_dataset = split_dataset(train_dataset, cfg.validation_split)
 
     test_dataset = dataset(root=cfg.root, train=False, download=True)
 

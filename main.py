@@ -1,13 +1,13 @@
 import hydra
-from omegaconf import DictConfig, OmegaConf
-from common_utils import load_config
-from experiment import ExperimentTracker
+from omegaconf import DictConfig
+
+from experiment import ExperimentRunner
 
 @hydra.main(version_base=None, config_path="conf", config_name="config")
 def main(cfg: DictConfig) -> None:
     root = hydra.utils.get_original_cwd()
 
-    experiment = ExperimentTracker(cfg)
+    experiment = ExperimentRunner(cfg)
     experiment.run()
 
 if __name__ == '__main__':
