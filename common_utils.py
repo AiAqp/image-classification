@@ -1,6 +1,7 @@
 import torch
 import random
 import importlib
+from functools import wraps
 import numpy as np
 from torch.nn import Module
 from typing import Any, List, Dict, Optional, Union
@@ -51,7 +52,7 @@ def initialize_from_config(config: Union[Dict[str, Any], List[Dict[str, Any]]], 
             It can be a single dictionary or a list of dictionaries. Each dictionary must have a 'type' 
             key and optionally an 'args' key.
         callback: If set to True, the function returns a callable wrapper instead of 
-            an instance of the object. Defaults to False.
+            an instance of the object with preloaded args and preserved metadata. Defaults to False.
 
     Returns:
         An initialized object or a list of initialized objects based on the 
@@ -71,10 +72,9 @@ def initialize_from_config(config: Union[Dict[str, Any], List[Dict[str, Any]]], 
         object_class = import_object(object_type)
 
         if callback:
+            @wraps(object_class)
             def wrapper(*wrapper_args, **wrapper_kwargs):
                 return object_class(*wrapper_args, **wrapper_kwargs, **args)
-            
-            wrapper.__name__ = getattr(object_class, '__name__', 'unknown')
 
             return wrapper
         else:
