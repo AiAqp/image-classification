@@ -54,6 +54,7 @@ optimizer:
 training: 
   n_epochs: 20
   patience: 2
+  save_model: True
 
 metrics:
   - type: sklearn.metrics.accuracy_score

@@ -141,6 +141,10 @@ class ExperimentRunner:
                 if not stopping_monitor.update_and_check(self.losses.get_metric('loss')):
                     tqdm.write("Early stopping triggered")
                     break
+            
+            if self.cfg.training.save_model:
+                mlflow.pytorch.log_model(self.model, self.cfg.model.type)
+                tqdm.write("Model saved")
 
             self.test_step()
             mlflow.log_metrics(self.losses.get_metrics('test'), step=epoch)
