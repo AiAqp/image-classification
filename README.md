@@ -22,9 +22,9 @@ pip install -r requirements.txt
 This project uses Hydra for configuration managment. Modify main configuration file `conf/config.yaml` for custom experiment settings.
 
 ### Running Experiments
-Execute the main script with optional configuration overrides:
+From project root, execute the main script with optional configuration overrides:
 ```bash
-python main.py training.n_epochs=5 experiment.use_gpu=False
+python src/main.py training.n_epochs=5 experiment.use_gpu=False
 
 ```
 
