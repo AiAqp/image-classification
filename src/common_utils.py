@@ -5,6 +5,21 @@ from functools import wraps
 import numpy as np
 from torch.nn import Module
 from typing import Any, List, Dict, Optional, Union
+import warnings
+
+
+def set_device(use_gpu: bool = True) -> torch.device:
+    """
+    Sets the device for PyTorch operations in a platform-agnostic way. 
+    Device uses GPU (CUDA or MPS) if available and falls back to CPU if not.
+    """
+    if use_gpu:
+        if torch.cuda.is_available():
+            return torch.device("cuda")
+        elif torch.backends.mps.is_available():
+            return torch.device("mps")
+        warnings.warn("GPU requested but not available. Falling back to CPU.")
+    return torch.device("cpu")
 
 def set_random_seeds(seed: int) -> None:
     """

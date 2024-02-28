@@ -1,11 +1,11 @@
 import datasets
 import metrics
 import common_utils
-import warnings
 import mlflow
 from tqdm import tqdm
 import torch
 from omegaconf import DictConfig
+
 
 class ExperimentRunner:
     """
@@ -27,7 +27,8 @@ class ExperimentRunner:
     def __init__(self, cfg: DictConfig):
         self.run_metrics = {}
         self.cfg = cfg
-        self.set_device()
+        self.device = common_utils.set_device(cfg.experiment.use_gpu)
+        self.run_metrics["device"] = str(self.device)
         common_utils.set_random_seeds(cfg.experiment.seed)
 
         # dataset pipeline
@@ -54,20 +55,6 @@ class ExperimentRunner:
         self.losses = metrics.LossTracker(criterion, callbacks)
 
         tqdm.__init__ = (lambda *args, **kwargs: None) if not cfg.experiment.show_progress else tqdm.__init__
-
-    def set_device(self) -> None:
-        """
-        Sets the device for the experiment based on configuration and system availability.
-        Appends the device information to run_metrics and issues a warning if GPU is requested but not available.
-        """
-        if self.cfg.experiment.use_gpu and torch.cuda.is_available():
-            self.device = torch.device("cuda")
-        else:
-            if self.cfg.experiment.use_gpu:
-                warnings.warn("GPU requested but not available. Falling back to CPU.")
-            self.device = torch.device("cpu")
-
-        self.run_metrics["device"] = str(self.device)
 
     def train_step(self) -> None:
         """
